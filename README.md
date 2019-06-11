@@ -1,9 +1,16 @@
 # 4. Ecommerce
 
-Projeto desenvolvido em  [PHP] version 7.3.4 [mysql] version 5.7
+Projeto desenvolvido em  <br />
+[PHP] version 7.3.4 [mysql] version 5.7
 <br />
 
-Cenários:[Cadastro de produtos/ Consulta de produtos/ Adição de produtos ao carrinho de compras/ Edição do carrinho de compras/ Gerar pedido/ Cancelar pedido]
+Cenários:<br />
+Cadastro de produtos<br />
+Consulta de produtos<br />
+Adição de produtos ao carrinho de compras<br />
+Edição do carrinho de compras<br />
+Gerar pedido<br />
+Cancelar pedido<br />
 
 ![](dev-doc/1view-T4.png)
 
@@ -28,7 +35,7 @@ Para construção do banco executar script SQL contido no diretório(dev-data/sc
 Todas as configurações necessárias de acesso a base de dados estão armazenadas no arquivo parâmetros.php
 <br />
 
-<p>
+<p><pre><code>
     if ($tipo_conexao == "base") {
           $host = "localhost";
           $database = "tst_ecommerce";
@@ -36,9 +43,9 @@ Todas as configurações necessárias de acesso a base de dados estão armazenad
           $pass="";
           return  mysqli_connect($host, $user,$pass,$database);
       }
-</p>
+</p></pre></code>
 
 
 ## Execução em ambiente servidor
 
-Para execução mova o projeto para o diretório do seu servidor local ex: APACHE(htdocs)
+Para execução do projeto mova o projeto para o diretório do seu servidor local ex: APACHE(htdocs)
