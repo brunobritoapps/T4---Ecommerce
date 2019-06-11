@@ -1,0 +1,174 @@
+<script type="text/javascript">
+    var remote = new Remote('php/comunicacao.php', 'cadastro', 'produto');
+
+    var arrCarrinho=new Array();
+
+    function resultGetProduto(dados) {
+        renderListaProdutos(dados);
+    }
+
+    function renderListaProdutos(dados) {
+        var conteudo="";
+        for (var i=0; i< dados.length;i++){
+            conteudo += '<div class="col-md-3">\n' +
+                '            <div class="panel panel-default">\n' +
+                '                <div class="panel-heading">\n' +
+                '                    <h3 class="panel-title">R$'+dados[i].preco.replace('.',',')+'</h3>\n' +
+                '                </div>\n' +
+                '                <div class="panel-body">\n' +
+                '                    <div class="col-md-12">\n' +
+                '                        <img class="col-md-12 " src="php/outros/loadproduct.php?n='+dados[i].id+'" alt="Produto">\n' +
+                '                    </div>\n' +
+                '                    <div class="col-md-12">\n' +
+                '                        <div class="form-group">\n' +
+                '                            <label>Produto</label>\n' +
+                '                            <p>'+dados[i].nome+'</p>\n' +
+                '                        </div>\n' +
+                '                    </div>\n' +
+                '                    <div class="col-md-12">\n' +
+                '                        <div class="form-group">\n' +
+                '                            <label>Descrição</label>\n' +
+                '                            <p>'+dados[i].descricao+'</p>\n' +
+                '                        </div>\n' +
+                '                    </div>\n' +
+                '                    <div class="col-md-12">\n' +
+                '                       <div class="form-group">\n' +
+                '                           <label>Quantidade</label>\n' +
+                '                           <select data-sel="'+i+'" class="form-control" data-live-search="true">\n' +
+                '                               <option value="1">1</option>\n' +
+                '                               <option value="2">2</option>\n' +
+                '                               <option value="3">3</option>\n' +
+                '                               <option value="4">4</option>\n' +
+                '                               <option value="5">5</option>\n' +
+                '                           </select>\n' +
+                '                       </div>\n' +
+                '                    </div>\n' +
+                '                    <div class="col-md-12">\n' +
+                '                       <div class="form-group">\n' +
+                '                           <button type="button" data-acao="add" data-addproduto="'+dados[i].id+'" class="col-md-12 btn btn-info" style="margin-top: 5px;">Adicionar ao carrinho</button>\n' +
+                '                       </div>\n' +
+                '                    </div>\n' +
+                '                </div>\n' +
+                '            </div>\n' +
+                '        </div>';
+        }
+        $('#divLista').html(conteudo);
+    }
+
+    function addItemCarrinho(id,qtd){
+        var obj = {
+            id_produto: parseInt(id),
+            quantidade: parseInt(qtd)
+        };
+        console.info(arrCarrinho);
+        if(arrCarrinho.length ==0){
+            arrCarrinho.push(obj);
+            sessionStorage.setItem('carrinho', JSON.stringify(arrCarrinho));
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Operação realizada com sucesso</font></p></b><p>Produto adicionado ao carrinho</p>',
+                type: 'success',
+                layout: 'center',
+                timeout: 6000
+            });
+        }else {
+            for (var item in arrCarrinho) {
+                var index = item;
+                var id = arrCarrinho[item].id_produto;
+                var qtd_o = arrCarrinho[item].quantidade;
+                var qtd_n = obj.quantidade;
+                if(obj.id_produto==id){
+                    noty({
+                        text: 'Você já possui '+qtd_o+' produto(s) deste em seu carrinho de compras. Você está certo dessa nova adição de '+qtd_n+' iten(s) do mesmo produto?',
+                        layout: 'center',
+                        buttons: [
+                            {addClass: 'btn btn-success btn-clean', text: 'Confirmar', onClick: function($noty) {
+                                    //
+                                    obj.quantidade = qtd_o + qtd_n;
+                                    arrCarrinho[index]=obj;
+                                    console.info(arrCarrinho);
+                                    sessionStorage.setItem('carrinho', JSON.stringify(arrCarrinho));
+                                    $noty.close();
+                                    //
+                                    noty({text: 'Produtos adicionados ao carrinho', layout: 'center', type: 'success'});
+                                }
+                            },
+                            {addClass: 'btn btn-danger btn-clean', text: 'Cancelar', onClick: function($noty) {
+                                    $noty.close();
+                                }
+                            }
+                        ]
+                    })
+                }else{
+                    arrCarrinho.push(obj);
+                    sessionStorage.setItem('carrinho', JSON.stringify(arrCarrinho));
+                    noty({
+                        text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Operação realizada com sucesso</font></p></b><p>Produto adicionado ao carrinho</p>',
+                        type: 'success',
+                        layout: 'center',
+                        timeout: 6000
+                    });
+                }
+            }
+        }
+
+    }
+
+    function getCarrinho() {
+        var dados = JSON.parse(sessionStorage.getItem('carrinho'));
+        if (sessionStorage.getItem('carrinho')){
+            arrCarrinho = dados;
+        }else{
+            sessionStorage.clear();
+        }
+        console.info(arrCarrinho);
+    }
+
+    $(document).ready(function () {
+        remote.executa("getProduto", null, resultGetProduto, $('#pnlListaProduto'), erroPersonalizado);
+        getCarrinho();
+        console.info(arrCarrinho);
+
+        $("#txtPesquisar").on('input', function () {
+            if ($("#txtPesquisar").val() != '') {
+                remote.executa("getProdutoByNome", {nome:$("#txtPesquisar").val()}, resultGetProduto, $('#pnlListaProduto'), erroPersonalizado);
+            }else{
+                remote.executa("getProduto", null, resultGetProduto, $('#pnlListaProduto'), erroPersonalizado);
+            }
+        });
+
+        $("#divLista").on("click", "[data-acao]", function () {
+            $this = $(this);
+            var id = $this.attr("data-addproduto");
+            var qtd = $this.parent().parent().parent().find('select').find(":selected").val();
+            addItemCarrinho(id,qtd);
+        });
+    });
+
+</script>
+<!-- START BREADCRUMB -->
+<ul class="breadcrumb">
+</ul>
+<!-- END BREADCRUMB -->
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+    <div class="row">
+        <div id="pnlListaProduto" class="panel panel-default">
+            <div class="panel-heading">
+                <div class="col-md-12">
+                    <ul class="panel-controls">
+                        <li><a href="index.php?page=c8020a25-4817-42e8-a1f1-2473da2dfeac" id="btnCarrinho" class="control-success" data-acao="add" title="Carrinho de compras"><span class="fa fa-shopping-cart"></span></a></li>
+                    </ul>
+                    <div class="input-group">
+                        <span class="input-group-addon"><span class="fa fa-search"></span></span>
+                        <input id="txtPesquisar" type="text" class="form-control" placeholder="Pesquisar produto"/>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id ="divLista" class="row">
+                    <!--LISTA DE PRODUTOS-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,391 @@
+<script type="text/javascript">
+    var remote = new Remote('php/comunicacao.php', 'cadastro', 'produto');
+    var oTable;
+    var defTable;
+
+    function resultGetProduto(dados) {
+        renderizaTabelaDefault(dados);
+    }
+
+    function resultGetCategoria(dados) {
+        $("#sel_categoria").html("");
+        for (var i = 0; i < dados.length; i++) {
+            $("#sel_categoria").append('<option value="' + dados[i].id + '">' + dados[i].categoria + '</option>');
+        }
+        $("#sel_categoria").selectpicker("refresh");
+    }
+
+    function renderizaTabelaDefault(dados) {
+        if (oTable == null) {
+            defTable = $('#t_dados').html();
+        } else {
+            $('#t_dados').html(defTable);
+        }
+        //var objDataTable = colunasDefaultDataTable($('#t_dados'), dados);
+        var objDataTable = colunasDefaultDataTable($('#t_dados'), dados, function (data) {
+            var rnd = Math.random()
+            var id = data.find("td:nth-child(1)").text();
+            $("#divImgProduto").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n='+id+'&c='+rnd+'" alt="Produto">');
+        });
+
+        oTable = $('#t_dados').dataTable(objDataTable);
+        $("#t_dados ").find('td:nth-child(6)').hide();
+        $("#t_dados ").find('th:nth-child(6)').hide();
+        $(window).resize();
+    }
+
+    function resultUploadFoto(dados){
+        var rnd = Math.random();
+        $("#divImgProdutoImport").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n='+dados+'&c='+rnd+'" alt="Produto">');
+    }
+
+    function validInput(dom,tipo){
+        switch(tipo){
+            case'num':var regex=/[A-Za-z]/g;break;
+            case'text':var regex=/\d/g;break;
+        }
+        dom.value=dom.value.replace(regex,'');
+        dom.value=dom.value.replace(',','.');
+    }
+
+    function validSetProduto(){
+        var sku = $('#txtSku').val();
+        var nome = $('#txtNome').val();
+        var descricao = $('#txtDescricao').val();
+        var preco = $('#txtPreco').val();
+        var categoria = $('#sel_categoria').find(":selected").val();
+
+        var valid_sku = true;
+        if(sku==''){
+            valid_sku = false;
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Faltam informações no cadastro de produto</font></p></b><p>Campo (SKU)</p>',
+                type: 'warning',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+        }
+
+        var valid_nome = true;
+        if(nome==''){
+            valid_nome = false;
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Faltam informações no cadastro de produto</font></p></b><p>Campo (Produto)</p>',
+                type: 'warning',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+
+        }
+        var valid_descricao = true;
+        if(descricao==''){
+            valid_descricao = false;
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Faltam informações no cadastro de produto</font></p></b><p>Campo (Descrição)</p>',
+                type: 'warning',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+
+        }
+        var valid_preco = true;
+        if(preco==''){
+            valid_preco = false;
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Faltam informações no cadastro de produto</font></p></b><p>Campo (Preco)</p>',
+                type: 'warning',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+
+        }
+        var valid_categoria = true;
+        if(categoria==0){
+            valid_categoria = false;
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">   Faltam informações no cadastro de produto</font></p></b><p>Campo (Categoria)</p>',
+                type: 'warning',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+        }
+
+        if(valid_sku==true & valid_nome==true & valid_descricao==true & valid_preco==true & valid_categoria==true){
+            return true
+        }else {
+            return false
+        }
+    }
+    function exibeDivPadrao(divPadrao) {
+        if (divPadrao == false) {
+            $("#divPadrao").show("fast");
+            $("#divEdicao").hide("fast");
+            $("#btnVol").hide();
+            $("#btnGra").hide();
+            $("#btnAdd").show();
+            $("#btnEdt").show();
+            $("#btnRem").show();
+            $("#divImgUser").html('');
+            $('#filelist').html('');
+            $("#pnlProduto").removeClass("col-md-3 col-md-offset-4").addClass("col-md-9");
+            $("#divImgProduto").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n=no-image" alt="Produto">');
+            $("#pnlPreview").show();
+            $("#t_dados tr.selected").removeClass("selected");
+        } else {
+            $("#divPadrao").hide("fast");
+            $("#divEdicao").show("fast");
+            $("#btnVol").show();
+            $("#btnGra").show();
+            $("#btnAdd").hide();
+            $("#btnEdt").hide();
+            $("#btnRem").hide();
+        }
+    }
+
+    $(document).ready(function () {
+        remote.executa("getProduto", null, resultGetProduto, $('#pnlUsuario'), erroPersonalizado);
+        remote.executa("getCategoria", null, resultGetCategoria, $('#divEdicao'), erroPersonalizado);
+
+        //script de upload
+        var uploader = new plupload.Uploader({
+            runtimes: 'gears,html5,flash,silverlight,browserplus',
+            browse_button: 'pickfiles',
+            drop_element: 'pickfiles',
+            container: 'container',
+            chunk_size: '5mb',
+            max_file_size: '200mb',
+            url: 'upload.php',
+            multi_selection: false,
+            unique_names: true,
+            flash_swf_url: 'theme/js/plugins/plupload/js/plupload.flash.swf',
+            silverlight_xap_url: 'theme/js/plugins/plupload/js/plupload.flash.swf',
+            filters: [
+                {title: "Imagem jpg", extensions: "jpg"}
+            ]
+        });
+
+        uploader.bind('Init', function (up, params) {
+            $('#filelist').html("");
+        });
+
+        $('#uploadfiles').click(function (e) {
+            uploader.start();
+            $("#uploadfiles").hide();
+            e.preventDefault();
+        });
+
+        uploader.init();
+
+        uploader.bind('FilesAdded', function (up, files) {
+            $.each(files, function (i, file) {
+                $('#filelist').html('<span> ' + file.name + ' (' + plupload.formatSize(file.size) + ') <span id="' + file.id + '"></span>');
+            });
+            $("#uploadfiles").show();
+            up.refresh(); // Reposition Flash/Silverlight
+        });
+
+        uploader.bind('UploadProgress', function (up, file) {
+            $('#filelist').html('<div class="progress-list"><div class="pull-left"><strong class="text-success">Progresso:</strong></div><div class="pull-right">' + plupload.formatSize(file.loaded) + 'MB/' + plupload.formatSize(file.size) + 'MB (' + file.percent + '%)</div><div class="progress progress-small progress-striped active"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="' + file.percent + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + file.percent + '%;">' + file.percent + '%</div></div></div>');
+        });
+
+        uploader.bind('Error', function (up, err) {
+            $('#filelist').html("Error: " + err.code +
+                ", Message: " + err.message +
+                (err.file ? ", File: " + err.file.name : "")
+            );
+
+            up.refresh(); // Reposition Flash/Silverlight
+        });
+
+        uploader.bind('FileUploaded', function (up, file, info) {
+            $('#filelist').html('<span> ' + file.name + ' (' + plupload.formatSize(file.size) + ') </span><span class="fa fa-check" style="color: #95b75d"></span>');
+            var obj = JSON.parse(info.response);
+            arquivo = obj.cleanFileName;
+            remote.executa("uploadFoto", {"arquivo": obj.cleanFileName, id: $("#txtId").val()}, resultUploadFoto, $('#divResul .panel'));
+        });
+
+        $("#btnAdd").on('click', function () {
+            $("#pnlProduto").removeClass("col-md-9").addClass("col-md-3 col-md-offset-4");
+            $("#divImgProdutoImport").html('');
+            $("#pnlPreview").fadeOut( "fast" );
+            $("#lblTitulo").html("Adicionando...");
+            $("#txtId").val("");
+            $("#txtSku").val("");
+            $("#txtNome").val("");
+            $("#txtDescricao").val("");
+            $("#txtPreco").val("");
+            $("#sel_categoria").selectpicker("refresh");
+            exibeDivPadrao(true);
+        });
+
+        $("#btnEdt").on('click', function () {
+            var objTemp = oTable.fnGetData(oTable.closest("table").find(".selected"));
+            if (objTemp != null) {
+                $("#pnlProduto").removeClass("col-md-9").addClass("col-md-3 col-md-offset-4");
+                $("#pnlPreview").fadeOut( "fast" );
+                $("#lblTitulo").html("Editando...");
+                $("#txtId").val(objTemp.id);
+                $("#txtSku").val(objTemp.sku);
+                $("#txtNome").val(objTemp.nome);
+                $("#txtDescricao").val(objTemp.descricao);
+                $("#txtPreco").val(objTemp.preco);
+                $("#sel_categoria").val(objTemp.id_categoria);
+
+                $("#sel_categoria").selectpicker("refresh");
+                $("#divImgProdutoImport").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n='+objTemp.id+'" alt="Produto">');
+                $("#divImgProduto").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n=no-image" alt="Produto">');
+                exibeDivPadrao(true);
+            }
+        });
+
+        $("#btnVol").on('click', function () {
+            exibeDivPadrao(false);
+        });
+
+        $("#btnGra").on('click', function () {
+            if(validSetProduto()){
+                var param = {
+                    id: $("#txtId").val(),
+                    sku: $("#txtSku").val(),
+                    nome: $("#txtNome").val(),
+                    descricao: $("#txtDescricao").val(),
+                    preco: $("#txtPreco").val(),
+                    id_categoria: $("#sel_categoria").val()
+                };
+                remote.executa("setProduto", param, function (dados) {
+                    exibeDivPadrao(false);
+                    resultGetProduto(dados);
+                }, $('.panel'), erroPersonalizado);
+            }
+
+        });
+
+        $("#btnRem").on('click', function () {
+            var objTemp = oTable.fnGetData(oTable.closest("table").find(".selected"));
+            if (objTemp != null) {
+                $("#txtId").val(objTemp.id);
+                $("#modal_small").modal();
+            }
+        });
+
+        $("#btnRemConf").on('click', function () {
+            remote.executa("remProduto", {id: $("#txtId").val()}, resultGetProduto, $('.panel'), erroPersonalizado);
+        });
+
+    });
+
+
+
+
+</script>
+<!-- START BREADCRUMB -->
+<ul class="breadcrumb">
+</ul>
+<!-- END BREADCRUMB -->
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+    <div class="row">
+        <div id="pnlProduto" class="col-md-9 ">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Produtos</h3>
+                    <ul class="panel-controls">
+                        <li><a href="#" id="btnAdd" class="control-info" data-acao="add" title="Adicionar"><span class="fa fa-plus"></span></a></li>
+                        <li><a href="#" id="btnEdt" class="control-warning" data-acao="edt" title="Editar"><span class="fa fa-pencil"></span></a></li>
+                        <li><a href="#" id="btnRem" class="control-danger" data-acao="rem" title="Excluir"><span class="fa fa-minus"></span></a></li>
+                        <li><a href="#" id="btnGra" class="control-success" data-acao="gra" title="Confirmar-Salvar" style="display: none;"><span class="fa fa-check"></span></a></li>
+                        <li><a href="#" id="btnVol" class="control-primary" data-acao="vol" title="Voltar-Cancelar" style="display: none;"><span class="fa fa-mail-reply"></span></a></li>
+                    </ul>
+                </div>
+                <div class="panel-body">
+                    <div id="divPadrao" class="row">
+                        <div class="col-md-12">
+                            <table id="t_dados" class="table table-striped table-bordered table-condensed">
+
+                            </table>
+                        </div>
+                    </div>
+                    <div id="divEdicao" class="row" style="display: none;">
+                        <h4 id="lblTitulo"></h4>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div id="container">
+                                    <div id="divImgProdutoImport"></div>
+                                    <a id="pickfiles" href="#" class="btn btn-primary">Importar Imagem</a>
+                                    <span id="filelist">Não é possível fazer upload</span>
+                                    <button id="uploadfiles" class="btn btn-default" style="display: none;">Upload</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>SKU</label>
+                                <input id="txtId" type="hidden"/>
+                                <input id="txtSku" type="text" class="form-control" maxlength="20" placeholder="Usuário">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Produto</label>
+                                <input id="txtNome" type="text" class="form-control" maxlength="20" placeholder="Produto">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Descrição</label>
+                                <textarea class="form-control" id="txtDescricao" rows="5"  maxlength="250" placeholder="Descrição"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Preço R$</label>
+                                <input id="txtPreco" onkeyup="validInput(this,'num');" type="text" class="form-control" maxlength="50" placeholder="Preço">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Categoria</label>
+                                <select id="sel_categoria" class="form-control" data-live-search="true"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pnlPreview" class="col-md-3 ">
+            <div  class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Preview</h3>
+                </div>
+                <div class="panel-body">
+                    <div id="divImgProduto">
+                        <img class="col-md-12 " src="img/product/no-image.jpg" alt="Produto">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<div class="modal" id="modal_small" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="defModalHead">Confirmação</h4>
+            </div>
+            <div class="modal-body">
+                Você tem certeza que deseja remover esse produto?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                <button id="btnRemConf" type="button" class="btn btn-primary" data-dismiss="modal">Sim</button>
+            </div>
+        </div>
+    </div>
+</div>

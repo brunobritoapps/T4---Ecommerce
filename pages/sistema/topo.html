@@ -1,0 +1,101 @@
+<script type="text/javascript">
+    var remoteTopo1 = new Remote('php/comunicacao.php', 'pedido', 'pedido');
+
+    $(document).ready(function () {
+        //dados do usuario
+        $("#s_login").html(s.login);
+        $(".a_nome").html(s.nome);
+        $("#s_email").html(s.email);
+        $(".foto_usuario").attr("src", 'php/outros/loadimage.php?n='+s.usuario);
+
+        $(".breadcrumb").append('<li><a href="index.php" class="glyphicons home"><i></i>Home</a></li>');
+        for (var i = menu.statusMenu.length - 1; i >= 0; i--) {
+            $(".breadcrumb").append('<li>' + menu.statusMenu[i].nome + '</li>');
+        }
+
+        $("#btnSair").on('click', function(){
+            $("#mb-signout").show();
+        });
+
+        $("#btnNoSair").on('click', function(){
+            $("#mb-signout").hide();
+        });
+
+        $("#btnYesSair").on('click', function(){
+            if (sessionStorage.getItem('carrinho')){
+                var dados =JSON.parse(sessionStorage.getItem('carrinho'));
+                console.info(dados);
+                if(dados.length!=0){
+                    noty({
+                        text: 'Você possui produto(s) em seu carrinho de compras e ao sair sem gerar o pedido você irá perde-los. Para gerar o pedido vá ao seu carrinho em Gerar pedido',
+                        layout: 'center',
+                        buttons: [
+                            {addClass: 'btn btn-success btn-clean', text: 'Sair', onClick: function($noty) {
+                                    //
+                                    sessionStorage.clear();
+                                    window.location.href = "index.php?sair=1";
+                                    //
+                                }
+                            },
+                            {addClass: 'btn btn-danger btn-clean', text: 'Cancelar', onClick: function($noty) {
+                                    $("#mb-signout").hide();
+                                    $noty.close();
+                                }
+                            },
+                            {addClass: 'btn btn-success btn-clean', text: 'Ver Carrinho', onClick: function($noty) {
+                                    window.location.href = "index.php?page=c8020a25-4817-42e8-a1f1-2473da2dfeac";
+                                    $noty.close();
+                                }
+                            }
+                        ]
+                    });
+                }
+            }else {
+                sessionStorage.clear();
+                window.location.href = "index.php?sair=1";
+            }
+
+
+        });
+
+    });
+</script>
+<!-- START X-NAVIGATION VERTICAL -->
+<ul id="painel_topo" class="x-navigation x-navigation-horizontal x-navigation-panel">
+
+    <!-- TOGGLE NAVIGATION -->
+    <li class="xn-icon-button">
+        <a href="#" class="x-navigation-minimize"><span class="fa fa-dedent"></span></a>
+    </li>
+    <!-- END TOGGLE NAVIGATION -->
+
+    <!-- SIGN OUT -->
+    <li class="xn-icon-button pull-right">
+        <a id="btnSair" title="Sair"><span></span>  <span class="fa fa-sign-out"></span></a>
+    </li>
+    <!-- END SIGN OUT -->
+
+    <!-- MESSAGE BOX - SIGN OUT -->
+    <div class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
+        <div class="mb-container">
+            <div class="mb-middle">
+                <div class="mb-title"><span class="fa fa-sign-out"></span> Log <strong>Out</strong> ?</div>
+                <div class="mb-content">
+                    <p>Você gostaria de fazer logout da Summer & Spring ?</p>
+                    <p>Pressione 'Não' se você quer continuar logado ao portal. Pressione 'Sim' caso queira fazer logout do seu usuário.</p>
+                </div>
+                <div class="mb-footer">
+                    <div class="pull-right">
+                        <a id='btnYesSair' class="btn btn-success btn-lg">Sim</a>
+                        <button id="btnNoSair" class="btn btn-default btn-lg mb-control-close">Não</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-alert" src="theme/audio/alert.mp3" preload="auto"></audio>
+    <!--END PLUGINS AUDIO-->
+
+</ul>
+<!-- END X-NAVIGATION VERTICAL -->

@@ -1,0 +1,188 @@
+<!--START STYLE-PAGE-->
+<style type="text/css">
+    .splash {
+        background: url(img/background.jpg) no-repeat center top;
+        margin-top: 0px;
+        padding-top: 0px;
+        text-align: center;
+        background-attachment: fixed;
+        background-position: center top;
+        min-height: 350px;
+        width: 100%;
+        -webkit-background-size: 100%;
+        -moz-background-size: 100%;
+        -o-background-size: 100%;
+        background-size: 100%;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+    }
+
+    .title-hsr{
+        color: #FFFFFF;
+        font-size: 50px;
+        font-family: sans-serif;
+        font-weight: 100;
+    }
+
+    .subtitle-hsr{
+        color: #FFFFFF;
+        font-size: 50px;
+        font-family: sans-serif;
+        font-weight: 100;
+    }
+</style>
+<!--END  STYLE-PAGE-->
+
+<!--START SCRIPTS-PAGE-->
+<!--END SCRIPTS-PAGE-->
+<script type='text/javascript'>
+
+    /*START NOTA: PROTOCOLO HTTPS*/
+    /*
+    if(window.location.protocol == "http:"){
+        var novaUrl = window.location.href.replace("http://", "https://");        
+        window.location = novaUrl;
+    }
+    */
+    /*END NOTA: PROTOCOLO HTTPS*/
+
+    var remote = new Remote('php/comunicacao.php', 'geral', 'login');
+
+    //START - FUNCTIONS
+    function entrar() {
+        remote.executa("logar", {usuario: $("#username").val(), senha: $("#password").val()}, resultLogar, $("#login_box"), erroPersonalizado);
+    }
+
+    function resultLogar(dados) {
+        if (dados == 1) {
+            $('#form_login').submit();
+        } else {
+            $(".form-horizontal").effect("shake", {distance: 10, times: 5}, 700);
+            $("#msgLogin").html("Usuário/Senha incorreto");
+            $("#msgLogin").show(300);
+            $('#username').focus();
+        }
+    }
+
+    function atualizaTamanho() {
+        var valor = $(window).innerHeight() - $(".login-box").innerHeight() - 15 + "px";
+        // $("#imgLogo").css("padding-top", $(".login-box").innerHeight() - 100 + "px");
+        $(".splash").css("min-height", valor);
+    }
+    //END - FUNCTIONS
+
+    //START - DOCUMENT READY
+    $(document).ready(function () {
+        $('html').addClass("body-full-height");
+
+        $('#username').focus();
+
+        $(window).keydown(function (event) {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+                return false;
+            }
+        });
+
+        $('#username').keyup(function (e) {
+            if (e.keyCode == 13) {
+                $('#password').focus();
+            }
+        });
+
+        $("#btnLogin").on("click", function (e) {
+            e.preventDefault();
+            if ($("#username").val() != "" && $("#password").val() != "") {
+                entrar();
+            }
+        });
+
+        $('#password').keyup(function (e) {
+            if (e.keyCode == 13) {
+                entrar();
+            }
+        });
+
+        if (url.hasOwnProperty("ses") || url.hasOwnProperty("page")) {
+            $("#msgLogin").html("Usuário não logado/Sessão expirou");
+            $("#msgLogin").show(300);
+        }
+
+        if (url.hasOwnProperty("sair")) {
+            $("#msgLogin").html("Logoff efetuado com sucesso!");
+            $("#msgLogin").show(300);
+        }
+
+        if (url.hasOwnProperty("man")) {
+            $("#msgLogin").html("Sistema em manutenção!");
+            $("#msgLogin").show(300);
+        }
+
+        $(window).resize(function () {
+            atualizaTamanho();
+        });
+        atualizaTamanho();
+//        $("#msg").show();
+
+    });
+
+</script>
+
+<!--START-PAGE-->
+<body>
+    <!--GERAL CONTAINER -->
+    <div class="login-container">
+        <div id="banner" class="splash">
+        </div>
+        <div style="float: left; margin: 20px;">
+            <img id="imgLogo" src="img/logo.png"/>
+        </div>
+        <!--START CONTAINER LOGIN-->
+        <div  id="login_box" class="login-box animated fadeInDown">
+            <div class="login-body">
+                <div class="login-title"><strong>Bem vindo</strong>, Faça login para acessar</div>
+                <form id="form_login" action="index.php" class="form-horizontal" method="post">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <input id="username" name="username" type="text" class="form-control" placeholder="Usuário"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <input id="password" name="password" type="password" class="form-control" placeholder="Senha"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-6">
+                            <input type="submit" name="btnLogin" id="btnLogin" class="btn btn-info btn-block" value="Login"/>
+                        </div>
+                        <div class="col-md-6">
+                            <a id="linkRegistre" href="#" class="btn btn-link btn-block">Registre-se</a>
+                            <!--<a href="#" class="btn btn-link btn-block">Esqueceu sua senha?</a>-->
+                        </div>
+                    </div>
+                </form>                
+            </div>
+            <!--START FOOTER LOGIN-->
+            <div class="login-footer">
+                <div class="pull-left">
+                    &copy; 2019 Ecommerce 1.0
+                </div>
+                <div class="pull-right">
+                    <span id="msgLogin" class="center label label-danger label-form" style="display: none;">Sistema em manutenção!</span>
+                </div>
+            </div>
+            <!--START FOOTER LOGIN-->
+        </div>
+        <!--END CONTAINER LOGIN-->
+    </div>
+
+
+    <!--START VALIDADE SCRIPT-->
+    <script type='text/javascript' src='./theme/js/plugins/jquery-validation/jquery.validate.js'></script>
+
+    <!--&lt;!&ndash; START OPCOES DE TEMPLATE &ndash;&gt;-->
+    <!--<scriptSql RELATORIO PERFORMANCE type="text/javascript" src="./theme/js/settings.js"></scriptSql RELATORIO PERFORMANCE>-->
+    <!--&lt;!&ndash; END OPCOES DE TEMPLATE &ndash;&gt;-->

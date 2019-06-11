@@ -1,0 +1,258 @@
+<script type="text/javascript">
+    var remote = new Remote('php/comunicacao.php', 'pedido', 'pedido');
+
+    var oTable;
+    var defTable;
+
+    var oTable_det;
+    var defTable_det;
+
+    function resultGetItens(dados) {
+        renderizaTabelaDetalhes(dados);
+    }
+
+    function renderizaTabelaDetalhes(dados) {
+        arrItens = dados;
+        getInfoGeral(dados);
+        if (oTable_det == null) {
+            defTable_det = $('#t_dados_det').html();
+        } else {
+            $('#t_dados_det').html(defTable_det);
+        }
+        var objDataTable = colunasDefaultDataTable($('#t_dados_det'), dados, function (data) {
+            var rnd = Math.random();
+            var id = data.find("td:nth-child(1)").text();
+            $("#divImgProduto").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n='+id+'&c='+rnd+'" alt="Produto">');
+        });
+        oTable_det = $('#t_dados_det').dataTable(objDataTable);
+        $("#t_dados_det ").find('td:nth-child(4)').hide();
+        $("#t_dados_det ").find('th:nth-child(4)').hide();
+        $("#t_dados_det ").find('td:nth-child(9)').hide();
+        $("#t_dados_det ").find('th:nth-child(9)').hide();
+        $("#t_dados_det").dataTable();
+        $(window).resize();
+    }
+
+    function getInfoGeral(dados){
+        var q = 0;
+        var t = 0;
+        var p = dados.length;
+        for(var i=0; i<p;i++){
+            var total=parseFloat(dados[i].total_item);
+            t += total;
+            q += dados[i].quantidade;
+        }
+        $("#txtQtdItens ").val(q);
+        $("#txtQtdProduto ").val(dados.length);
+        $("#txtTotal ").val(t.toFixed(2).toString().replace('.',','));
+    }
+
+    function resultGetProduto(dados) {
+        renderizaTabelaDefault(dados);
+    }
+
+    function renderizaTabelaDefault(dados) {
+        if (oTable == null) {
+            defTable = $('#t_dados').html();
+        } else {
+            $('#t_dados').html(defTable);
+        }
+        var objDataTable = colunasDefaultDataTable($('#t_dados'), dados, function (data) {
+            //
+        });
+
+        oTable = $('#t_dados').dataTable(objDataTable);
+        $("#t_dados ").find('td:nth-child(2)').hide();
+        $("#t_dados ").find('th:nth-child(2)').hide();
+        $("#t_dados ").find('td:nth-child(6)').hide();
+        $("#t_dados ").find('th:nth-child(6)').hide();
+        $(window).resize();
+    }
+
+    function resultSetRemPedido(dados) {
+        if(dados==1){
+            remote.executa("getPedido", null, resultGetProduto, $('#pnlPedido'), erroPersonalizado);
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">  Operação realizada com sucesso</font></p></b><p>Pedido cancelado</p>',
+                type: 'success',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+        }else{
+            noty({
+                text: '<br/><b><p><span class="fa fa-exclamation-circle"></span><font size="2">  Error</font></p></b><p>Erro ao cancelar pedido</p>',
+                type: 'warning',
+                layout: 'topCenter',
+                timeout: 4000
+            });
+        }
+    }
+
+    function showDivPadrao(divPadrao) {
+        if (divPadrao == false) {
+            $("#pnlGeral").hide();
+            $("#pnlCarrinho").hide();
+            $("#pnlPreview").hide();
+            $("#pnlPedido").show();
+            $("#divImgProduto").html('<img class="col-md-12 " src="php/outros/loadproduct.php?n=no-image" alt="Produto">');
+            $("#t_dados tr.selected").removeClass("selected");
+        } else {
+            $("#pnlGeral").show("fast");
+            $("#pnlCarrinho").show("fast");
+            $("#pnlPreview").show("fast");
+            $("#pnlPedido").hide("fast");
+            $("#btnVol").show("fast");
+        }
+    }
+
+
+    $(document).ready(function () {
+        remote.executa("getPedido", null, resultGetProduto, $('#pnlPedido'), erroPersonalizado);
+
+        $("#btnDet").on('click', function () {
+            var objTemp = oTable.fnGetData(oTable.closest("table").find(".selected"));
+            if (objTemp != null) {
+                showDivPadrao(true);
+                remote.executa("getItens", {id:objTemp.num_pedido}, resultGetItens, $('#pnlPedido'), erroPersonalizado);
+            }
+        });
+
+        $("#btnVol").on('click', function () {
+            showDivPadrao(false);
+        });
+
+        $("#btnRem").on('click', function () {
+            var objTemp = oTable.fnGetData(oTable.closest("table").find(".selected"));
+            if (objTemp != null) {
+                $("#modal_small").modal();
+            }
+        });
+
+        $("#btnRemConf").on('click', function () {
+            var objTemp = oTable.fnGetData(oTable.closest("table").find(".selected"));
+            if (objTemp != null) {
+                remote.executa("remPedido", {id:objTemp.num_pedido}, resultSetRemPedido, $('#pnlPedido'), erroPersonalizado);
+            }
+        });
+
+    });
+
+
+
+</script>
+<!-- START BREADCRUMB -->
+<ul class="breadcrumb">
+</ul>
+<!-- END BREADCRUMB -->
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+    <div class="row">
+        <div id="pnlPedido" class="col-md-4 col-md-offset-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Pedidos</h3>
+                    <ul class="panel-controls">
+                        <li><a href="#" id="btnDet" class="control-primary" data-acao="gra" title="Ver Detalhes do pedido" ><span class="fa fa-list-alt"></span></a></li>
+                        <li><a href="#" id="btnFin" class="control-success" data-acao="gra" title="Finalizar pedido" ><span class="fa fa-check"></span></a></li>
+                        <li><a href="#" id="btnRem" class="control-danger" data-acao="rem" title="Excluir pedido"><span class="fa fa-minus"></span></a></li>
+                    </ul>
+                </div>
+                <div class="panel-body">
+                    <div id="divPadraoPed" class="row">
+                        <div class="col-md-12">
+                            <table id="t_dados" class="table table-striped table-bordered table-condensed">
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- START PANEL GERAL -->
+        <div id="pnlGeral" class="col-md-12 col-md-offset-0" style="display: none;">
+            <div  class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Painel geral</h3>
+                    <ul class="panel-controls">
+                        <li><a href="#" id="btnVol" class="control-primary" data-acao="vol" title="Voltar" style="display: none;"><span class="fa fa-mail-reply"></span></a></li>
+                    </ul>
+                </div>
+                <div class="panel-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <div class="col-md-1">
+                                <label class="control-label"><span class="fa fa-th"></span>  Qtd produtos</label>
+                                <input id='txtQtdProduto' type="text"  class="form-control" disabled="disabled"/>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="control-label"><span class="fa fa-th"></span> Qtd itens</label>
+                                <input id='txtQtdItens' type="text"  class="form-control" disabled="disabled"/>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="control-label"><span class="fa fa-dollar"></span>  Total R$</label>
+                                <input id='txtTotal' type="text"  class="form-control"  disabled="disabled"/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- END PANEL GERAL -->
+        </div>
+
+        <div id="pnlCarrinho" class="col-md-9 " style="display: none;" >
+            <div  class="panel panel-default" >
+                <!--START PAINEL DE CONTROLES-->
+                <div class="panel-heading">
+                    <h3 class="panel-title">Resumo dos itens</h3>
+                </div>
+                <!--END PAINEL DE CONTROLES-->
+
+                <!--START -TABELA-->
+                <div class="panel-body">
+                    <!--START TABELA-->
+                    <div id="divPadrao" class="row">
+                        <div class="col-md-12" style="overflow-x: auto;">
+                            <table id="t_dados_det" class="table table-striped table-bordered table-condensed">
+
+                            </table>
+                        </div>
+                    </div>
+                    <!--END TABELA-->
+                </div>
+            </div>
+        </div>
+
+        <div id="pnlPreview" class="col-md-3 " style="display: none;">
+            <div  class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Preview</h3>
+                </div>
+                <div class="panel-body">
+                    <div id="divImgProduto">
+                        <img class="col-md-12 " src="img/product/no-image.jpg" alt="Produto">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal_small" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="defModalHead">Confirmação</h4>
+            </div>
+            <div class="modal-body">
+                Você tem certeza que deseja remover esse pedido?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                <button id="btnRemConf" type="button" class="btn btn-primary" data-dismiss="modal">Sim</button>
+            </div>
+        </div>
+    </div>
+</div>
