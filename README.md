@@ -2,12 +2,20 @@
 
 This project was generated with [PHP] version 7.3.4 [mysql] version 5.7
 
-![](doc/1-viewT4.jpg)
+![](dev-doc/1viewT4.jpg)
 
 ## API access key
 This project uses an api (https://home.openweathermap.org) and requires a key to access the api services. To do this, create an account and generate a password.
 
-![](doc/2-viewT4.jpg)
+![](dev-doc/2viewT4.jpg)
+## API access key
+This project uses an api (https://home.openweathermap.org) and requires a key to access the api services. To do this, create an account and generate a password.
+
+![](dev-doc/3viewT4.jpg)
+## API access key
+This project uses an api (https://home.openweathermap.org) and requires a key to access the api services. To do this, create an account and generate a password.
+
+![](dev-doc/4viewT4.jpg)
 
 ## Download dependencies
 
