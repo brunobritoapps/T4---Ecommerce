@@ -29,6 +29,13 @@ Cancelar pedido<br />
 ## Script SQL
 
 Para construção do banco executar script SQL contido no diretório(dev-data/scriptSQL_START.sql)
+<br />
+O script SQL irá gerar um acesso inicial com nível admnistrador:
+<br />
+Usuário: admin
+<br />
+Senha:123
+<br />
 
 ## Edição de configuração de acesso a Base de Dados
 
